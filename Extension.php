@@ -34,6 +34,11 @@ class Extension extends \Bolt\BaseExtension
 
     }
 
+    public function getName()
+    {
+        return "Import WXR";
+    }
+
     function initialize()
     {
         // Set the path to match in the controller.
