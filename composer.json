@@ -1,5 +1,5 @@
 {
-    "name": "bolt/ImportWXR",
+    "name": "bolt/importwxr",
     "description": "",
     "type": "bolt-extension",
     "keywords": [],
@@ -19,11 +19,6 @@
         ],
         "psr-4": {
             "ImportWXR\\": ""
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.7.*"
         }
     }
 }
