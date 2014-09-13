@@ -22,7 +22,7 @@ class Extension extends \Bolt\BaseExtension
             'description' => "An Import filter for WXR files, as created by Wordpress or PivotX",
             'author' => "Bob den Otter",
             'link' => "http://www.twokings.nl",
-            'version' => "1.0",
+            'version' => "1.1",
             'required_bolt_version' => "1.4",
             'highest_bolt_version' => "1.4",
             'type' => "Import",
@@ -48,7 +48,7 @@ class Extension extends \Bolt\BaseExtension
         $this->app->match($path, array($this, 'importwxr'));
 
         // Add the menu-option. Only show it to users who have 'extensions' permission
-        $this->addMenuOption('Import WXR', 'importwxr', 'icon-list', 'extensions');
+        $this->addMenuOption('Import WXR', 'importwxr', 'gear', 'extensions');
     }
 
     public function importwxr()
