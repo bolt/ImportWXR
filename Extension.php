@@ -9,31 +9,6 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class Extension extends \Bolt\BaseExtension
 {
-
-
-    /**
-     * Info block for RSSFeed Extension.
-     */
-    function info()
-    {
-
-        $data = array(
-            'name' => "ImportWXR",
-            'description' => "An Import filter for WXR files, as created by Wordpress or PivotX",
-            'author' => "Bob den Otter",
-            'link' => "http://www.twokings.nl",
-            'version' => "1.1",
-            'required_bolt_version' => "1.4",
-            'highest_bolt_version' => "1.4",
-            'type' => "Import",
-            'first_releasedate' => "2013-11-17",
-            'latest_releasedate' => "2013-12-18",
-        );
-
-        return $data;
-
-    }
-
     public function getName()
     {
         return "Import WXR";
