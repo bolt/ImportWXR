@@ -1,7 +1,7 @@
 <?php
 // Import WXR (PivotX / Wordpress) for Bolt, by Bob den Otter (bob@twokings.nl
 
-namespace ImportWXR;
+namespace Bolt\Extension\Bolt\ImportWXR;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
