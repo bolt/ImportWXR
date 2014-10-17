@@ -1,6 +1,6 @@
 {
     "name": "bolt/importwxr",
-    "description": "",
+    "description": "An Import filter for WXR files, as created by Wordpress or PivotX",
     "type": "bolt-extension",
     "keywords": [],
     "require": {
@@ -18,7 +18,7 @@
             "init.php"
         ],
         "psr-4": {
-            "ImportWXR\\": ""
+            "Bolt\\Extension\\Bolt\\ImportWXR\\": ""
         }
     }
 }
