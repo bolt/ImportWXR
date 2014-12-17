@@ -157,7 +157,7 @@ class Extension extends \Bolt\BaseExtension
 
                 switch ($to) {
                     case "username":
-                        $value = makeSlug($value);
+                        $value = \Bolt\Helpers\String::slug($value);
                         break;
                     case "status":
                         if ($value=="publish") { $value = "published"; }
