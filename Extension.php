@@ -56,7 +56,7 @@ class Extension extends \Bolt\BaseExtension
                     $output .= "<p><a class='btn btn-primary' href='?action=dryrun'><strong>Test a few records</strong></a></p>";
 
                     $output .= "<p>This mapping will be used:</p>";
-                    $output .= \Dumper::dump($this->config['mapping'], true);
+                    $output .= \Dumper::dump($this->config['mapping'], DUMPER_CAPTURE);
                 }
                 break;
 
@@ -184,12 +184,12 @@ class Extension extends \Bolt\BaseExtension
 
         if ($dryrun) {
             $output = "<p>Original WXR Post <b>\"" . $post['post_title'] . "\"</b> -&gt; Converted Bolt Record :</p>";
-            $output .= \Dumper::dump($post, true);
-            $output .= \Dumper::dump($record, true);
+            $output .= \Dumper::dump($post, DUMPER_CAPTURE);
+            $output .= \Dumper::dump($record, DUMPER_CAPTURE);
             $output .= "\n<hr>\n";
         } else {
-            $this->app['storage']->saveContent($record);
-            $output = "Import: " . $record->get('id') . " - " . $record->get('title') . " <small><em>";
+            $id = $this->app['storage']->saveContent($record);
+            $output = "Import: " . $id . " - " . $record->get('title') . " <small><em>";
             $output .= $this->memUsage() ."mb.</em></small><br>";
         }
 
