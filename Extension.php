@@ -42,6 +42,7 @@ class Extension extends \Bolt\BaseExtension
         }
 
         require_once "src/parsers.php";
+        require_once "src/wp_error.php";
         $parser = new \WXR_Parser();
 
         switch ($action) {
