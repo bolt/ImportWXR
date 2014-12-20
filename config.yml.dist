@@ -1,4 +1,5 @@
-# The name of the XML file to import. Place this file in ImportWXR/files/
+# The name of the XML file to import. Place this file in the folder:
+# extensions/vendor/bolt/importwxr/files/
 
 #file: files/pages.xml
 file: files/entries_and_comments.xml
