@@ -35,6 +35,8 @@ mapping:
       post_date: datecreated
       post_name: slug
       status: status
+    category: categories
+    tags: tags      
 
   attachment: # Wordpress entries..
     targetcontenttype: attachments
@@ -82,3 +84,4 @@ mapping:
       status: status
       image: image
     category: categories
+    tags: tags
