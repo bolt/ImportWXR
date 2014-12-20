@@ -69,12 +69,18 @@ class Extension extends \Bolt\BaseExtension
                     $output .= $this->importPost($post, false);
                 }
 
-                $output .= "<p><strong>Done!</strong></p>";
-
                 if (!empty($this->foundcategories)) {
-                    $output .= "<p>These categories were found, make sure you add them to your <code>taxonomy.yml</code></p>";
-                    $output .= "<textarea style='width: 400px;'>" . json_encode($this->foundcategories) . "</textarea>";
+                    $cat_array = array(
+                        "categories" => array(
+                            'options' => $this->foundcategories 
+                        )
+                    );
+                    $cat_yaml = \Symfony\Component\Yaml\Yaml::dump($cat_array, 3);
+                    $output .= "<br><p>These categories were found, make sure you add them to your <code>taxonomy.yml</code></p>";
+                    $output .= "<textarea style='width: 500px; height: 200px;'>" . $cat_yaml . "</textarea>";
                 }
+
+                $output .= "<p><strong>Done!</strong></p>";
 
                 break;
 
@@ -170,15 +176,20 @@ class Extension extends \Bolt\BaseExtension
             }
 
         }
+            \Dumper::dump($post['terms']);
 
         // Perhaps import the categories as well..
         if (!empty($mapping['category']) && !empty($post['terms'])) {
+
             foreach ($post['terms'] as $term) {
                 if ($term['domain'] == 'category') {
-                    $record->setTaxonomy($mapping['category'], $term['slug']);
+                    $record->setTaxonomy($mapping['category'], $term['slug'], $term['name']);
                     if (!in_array($term['slug'], $this->foundcategories)) {
-                        $this->foundcategories[] = $term['slug'];
+                        $this->foundcategories[ $term['slug'] ] = $term['name'];
                     }
+                }
+                if ($term['domain'] == 'tag' || $term['domain'] == 'post_tag') {
+                    $record->setTaxonomy($mapping['tags'], $term['slug'], $term['name']);
                 }
             }
         }
