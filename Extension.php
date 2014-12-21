@@ -176,7 +176,6 @@ class Extension extends \Bolt\BaseExtension
             }
 
         }
-            \Dumper::dump($post['terms']);
 
         // Perhaps import the categories as well..
         if (!empty($mapping['category']) && !empty($post['terms'])) {
