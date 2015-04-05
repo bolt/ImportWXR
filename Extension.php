@@ -164,7 +164,7 @@ class Extension extends \Bolt\BaseExtension
 
                 switch ($to) {
                     case "username":
-                        $value = \Bolt\Helpers\String::slug($value);
+                        $value = $this->app['slugify']->slugify($value);
                         break;
                     case "status":
                         if ($value=="publish") { $value = "published"; }
