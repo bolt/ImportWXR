@@ -1,17 +1,20 @@
 # The name of the XML file to import. Place this file in the folder:
 # extensions/vendor/bolt/importwxr/files/
 
-#file: files/pages.xml
+# file: files/pages.xml
 file: files/entries_and_comments.xml
 
-import_authors: false # not yet supported.
+# Whether authors found in the XML file should be automatically imported. Not yet supported. 
+import_authors: false
+
+### Comments for "mapping" section below
+
+# Make sure your mappings are actually mapping to fields that exist in your
+# contenttypes. If they don't some of the data from the import will be lost.
 
 # If 'author' is set, all records of that contenttype will have that author. If
 # left unset, Bolt will import it, as if it belongs to the original author,
 # regardless of whether the author exists.
-
-# Make sure your mappings are actually mapping to fields that exist in your
-# contenttypes. If they don't some of the data from the import will be lost.
 
 # If 'post_id' is mapped to 'id', it will preserve the ID's in bolt, so this
 # will overwrite your content, if these ID's are already taken in Bolt. Comment
@@ -24,15 +27,15 @@ mapping:
 
   #wordpress mappings 
 
-  post: # Wordpress entries..
+  post: # Wordpress / PivotX entries..
     targetcontenttype: entries
-    #author: admin
+    # author: admin
     fields:
       post_title: title
       post_author: username
       post_content: body
       post_excerpt: teaser
-      post_id: id
+      # post_id: id
       post_date: datecreated
       post_name: slug
       status: status
@@ -41,14 +44,14 @@ mapping:
 
   attachment: # Wordpress entries..
     targetcontenttype: attachments
-    #author: admin
+    # author: admin
     fields:
       post_title: title
       post_author: username
       attachment_url: url
       _wp_attached_file: image
       post_content: body
-      post_id: id
+      # post_id: id
       post_date: datecreated
       post_name: slug
       status: status
@@ -57,32 +60,13 @@ mapping:
 
   page: # Wordpress pages / PivotX pages..
     targetcontenttype: pages
-    #author: admin
+    # author: admin
     fields:
       post_title: title
       post_author: username
-      post_excerpt: body
-      post_id: id
+      post_content: body
+      # post_id: id
       post_date: datecreated
       post_name: slug
       status: status
       image: image
-
-
-  # PivotX mappings 
-
-  entry: # pivotX entries..
-    targetcontenttype: entries
-    #author: admin
-    fields:
-      post_title: title
-      post_author: username
-      post_content: teaser
-      post_excerpt: body
-      post_id: id
-      post_date: datecreated
-      post_name: slug
-      status: status
-      image: image
-    category: categories
-    tags: tags
