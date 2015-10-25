@@ -1,18 +1,21 @@
 <?php
 
 // Stub function, to prevent breakage from using an external library..
-function is_wp_error($thing) {
-    if ( is_object($thing) && is_a($thing, 'WP_Error') )
+function is_wp_error($thing)
+{
+    if (is_object($thing) && is_a($thing, 'WP_Error')) {
         return true;
+    }
     return false;
 }
 
 // WP_Error( 'SimpleXML_parse_error', __( 'There was an error when reading this WXR file', 'wordpress-importer' ), libxml_get_errors() );
-class WP_Error {
+class WP_Error
+{
 
     private $error_code;
 
-    function __construct($error_code, $description, $parameters) 
+    function __construct($error_code, $description, $parameters)
     {
 
         $this->error_code = $error_code;
@@ -25,7 +28,7 @@ class WP_Error {
 
     }
 
-    function get_error_code() 
+    function get_error_code()
     {
         return $error_code;
     }

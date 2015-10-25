@@ -72,7 +72,7 @@ class Extension extends \Bolt\BaseExtension
                 if (!empty($this->foundcategories)) {
                     $cat_array = array(
                         "categories" => array(
-                            'options' => $this->foundcategories 
+                            'options' => $this->foundcategories
                         )
                     );
                     $cat_yaml = \Symfony\Component\Yaml\Yaml::dump($cat_array, 3);
@@ -116,16 +116,16 @@ class Extension extends \Bolt\BaseExtension
     {
 
         // If the mapping is not defined, ignore it.
-        if (empty($this->config['mapping'][ $post['post_type'] ])) {
+        if (empty($this->config['mapping'][$post['post_type']])) {
             return "<p>No mapping defined for posttype '" . $post['post_type'] . "'.</p>";
         }
 
         // Find out which mapping we should use.
-        $mapping = $this->config['mapping'][ $post['post_type'] ];
+        $mapping = $this->config['mapping'][$post['post_type']];
 
         // If the mapped contenttype doesn't exist in Bolt.
         if (!$this->app['storage']->getContentType($mapping['targetcontenttype'])) {
-            return "<p>Bolt contenttype '". $mapping['targetcontenttype'] . "' for posttype '" . $post['post_type'] . "' does not exist.</p>";
+            return "<p>Bolt contenttype '" . $mapping['targetcontenttype'] . "' for posttype '" . $post['post_type'] . "' does not exist.</p>";
         }
 
         // Create the new Bolt Record.
@@ -167,8 +167,12 @@ class Extension extends \Bolt\BaseExtension
                         $value = $this->app['slugify']->slugify($value);
                         break;
                     case "status":
-                        if ($value=="publish") { $value = "published"; }
-                        if ($value=="future") { $value = "timed"; }
+                        if ($value == "publish") {
+                            $value = "published";
+                        }
+                        if ($value == "future") {
+                            $value = "timed";
+                        }
                         break;
                 }
 
@@ -184,7 +188,7 @@ class Extension extends \Bolt\BaseExtension
                 if ($term['domain'] == 'category') {
                     $record->setTaxonomy($mapping['category'], $term['slug'], $term['name']);
                     if (!in_array($term['slug'], $this->foundcategories)) {
-                        $this->foundcategories[ $term['slug'] ] = $term['name'];
+                        $this->foundcategories[$term['slug']] = $term['name'];
                     }
                 }
                 if ($term['domain'] == 'tag' || $term['domain'] == 'post_tag') {
@@ -201,7 +205,7 @@ class Extension extends \Bolt\BaseExtension
         } else {
             $id = $this->app['storage']->saveContent($record);
             $output = "Import: " . $id . " - " . $record->get('title') . " <small><em>";
-            $output .= $this->memUsage() ."mb.</em></small><br>";
+            $output .= $this->memUsage() . "mb.</em></small><br>";
         }
 
         return $output;
