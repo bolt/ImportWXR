@@ -30,7 +30,7 @@ class WP_Error
 
     function get_error_code()
     {
-        return $error_code;
+        return $this->error_code;
     }
 
 }
