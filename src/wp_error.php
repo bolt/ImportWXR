@@ -12,22 +12,20 @@ class WP_Error {
 
     private $error_code;
 
-    function __construct($error_code, $description, $parameters) 
+    function __construct($error_code, $description, $parameters)
     {
 
         $this->error_code = $error_code;
 
         echo "<h2>" . $error_code . "</h2>";
         echo "<p>" . $description . "</p>";
-        \Dumper::dump($parameters);
+        dump($parameters);
 
         die();
-
     }
 
-    function get_error_code() 
+    function get_error_code()
     {
         return $error_code;
     }
-
 }

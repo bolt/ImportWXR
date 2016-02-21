@@ -207,7 +207,6 @@ class Extension extends \Bolt\BaseExtension
         }
 
         return $output;
-
     }
 
     private function memusage()
@@ -215,7 +214,6 @@ class Extension extends \Bolt\BaseExtension
         $mem = number_format(memory_get_usage() / 1048576, 1);
 
         return $mem;
-
     }
 
     private function dump($var)
@@ -223,7 +221,6 @@ class Extension extends \Bolt\BaseExtension
         ob_start();
         dump($var);
         return ob_get_clean();
-
     }
 
 }
