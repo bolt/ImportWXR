@@ -57,7 +57,7 @@ class Extension extends \Bolt\BaseExtension
                     $output .= "<p><a class='btn btn-primary' href='?action=dryrun'><strong>Test a few records</strong></a></p>";
 
                     $output .= "<p>This mapping will be used:</p>";
-                    $output .= \Dumper::dump($this->config['mapping'], DUMPER_CAPTURE);
+                    $output .= $this->dump($this->config['mapping']);
                 }
                 break;
 
@@ -72,7 +72,7 @@ class Extension extends \Bolt\BaseExtension
                 if (!empty($this->foundcategories)) {
                     $cat_array = array(
                         "categories" => array(
-                            'options' => $this->foundcategories 
+                            'options' => $this->foundcategories
                         )
                     );
                     $cat_yaml = \Symfony\Component\Yaml\Yaml::dump($cat_array, 3);
@@ -104,6 +104,8 @@ class Extension extends \Bolt\BaseExtension
         }
 
         unset($res);
+
+        $output = '<div class="row"><div class="col-md-8">' . $output . "</div></div>";
 
         return $this->app['render']->render('old_extensions/old_extensions.twig', array(
             'title' => "Import WXR (PivotX / Wordpress XML)",
@@ -195,8 +197,8 @@ class Extension extends \Bolt\BaseExtension
 
         if ($dryrun) {
             $output = "<p>Original WXR Post <b>\"" . $post['post_title'] . "\"</b> -&gt; Converted Bolt Record :</p>";
-            $output .= \Dumper::dump($post, DUMPER_CAPTURE);
-            $output .= \Dumper::dump($record, DUMPER_CAPTURE);
+            $output .= $this->dump($post);
+            $output .= $this->dump($record);
             $output .= "\n<hr>\n";
         } else {
             $id = $this->app['storage']->saveContent($record);
@@ -213,6 +215,14 @@ class Extension extends \Bolt\BaseExtension
         $mem = number_format(memory_get_usage() / 1048576, 1);
 
         return $mem;
+
+    }
+
+    private function dump($var)
+    {
+        ob_start();
+        dump($var);
+        return ob_get_clean();
 
     }
 
