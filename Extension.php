@@ -201,13 +201,33 @@ class Extension extends \Bolt\BaseExtension
             $output .= $this->dump($record);
             $output .= "\n<hr>\n";
         } else {
-            $id = $this->app['storage']->saveContent($record);
+            $id = $this->upsert($record);
             $output = "Import: " . $id . " - " . $record->get('title') . " <small><em>";
             $output .= $this->memUsage() ."mb.</em></small><br>";
         }
 
         return $output;
     }
+
+    private function upsert($record)
+    {
+        // We check if record[id] is not empty, and if it already exists. If not, we create a stub,
+        // so 'savecontent' won't fail.
+        if (!empty($record['id'])) {
+            $temp = $this->app['storage']->getContent($record->contenttype['slug'] . '/' . $record['id']);
+            if (empty($temp)) {
+                // dump($this->app['config']->get('general'));
+                $tablename = $this->app['config']->get('general/database/prefix') . $record->contenttype['tablename'];
+                $sql = "INSERT INTO `$tablename` (`id`) VALUES (" . $record['id'] . ");";
+                $this->app['db']->query($sql);
+            }
+        }
+
+        $id = $this->app['storage']->saveContent($record);
+
+        return $id;
+    }
+
 
     private function memusage()
     {
