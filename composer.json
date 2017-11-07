@@ -2,9 +2,13 @@
     "name": "bolt/importwxr",
     "description": "An extension to import WXR files, as created by Wordpress or PivotX.",
     "type": "bolt-extension",
-    "keywords": [],
+    "keywords": [
+    ],
     "require": {
-        "bolt/bolt": ">=2.0.0,<3.0.0"
+        "bolt/bolt": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.7"
     },
     "license": "MIT",
     "authors": [
@@ -13,12 +17,21 @@
             "email": "bob@twokings.nl"
         }
     ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
-        "files": [
-            "init.php"
-        ],
         "psr-4": {
-            "Bolt\\Extension\\Bolt\\ImportWXR\\": ""
+            "Bolt\\Extension\\Bolt\\Importwxr\\": "src"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Bolt\\Extension\\Bolt\\Importwxr\\Tests\\": "tests",
+            "Bolt\\Tests\\": "vendor/bolt/bolt/tests/phpunit/unit/"
+        }
+    },
+    "extra": {
+        "bolt-assets": "web",
+        "bolt-class": "Bolt\\Extension\\Bolt\\Importwxr\\ImportwxrExtension"
     }
 }

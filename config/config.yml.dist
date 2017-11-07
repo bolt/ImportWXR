@@ -4,7 +4,7 @@
 # file: files/pages.xml
 file: files/entries_and_comments.xml
 
-# Whether authors found in the XML file should be automatically imported. Not yet supported. 
+# Whether authors found in the XML file should be automatically imported. Not yet supported.
 import_authors: false
 
 ### Comments for "mapping" section below
@@ -25,7 +25,7 @@ import_authors: false
 
 mapping:
 
-  #wordpress mappings 
+  #wordpress mappings
 
   post: # Wordpress / PivotX entries..
     targetcontenttype: entries
@@ -40,7 +40,7 @@ mapping:
       post_name: slug
       status: status
     category: categories
-    tags: tags      
+    tags: tags
 
   attachment: # Wordpress entries..
     targetcontenttype: attachments
@@ -70,3 +70,7 @@ mapping:
       post_name: slug
       status: status
       image: image
+
+
+allowed_tags: ['div', 'p', 'br', 's', 'u', 'strong', 'em', 'i', 'b',  'blockquote', 'a', 'img']
+allowed_attributes: ['id', 'class', 'name', 'value', 'href', 'src', 'alt', 'title']
