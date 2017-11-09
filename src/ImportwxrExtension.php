@@ -36,6 +36,17 @@ class ImportwxrExtension extends SimpleExtension
     /**
      * {@inheritdoc}
      */
+    public function getServiceProviders()
+    {
+        return [
+            $this,
+            new Provider\ImportProvider()
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function getDefaultConfig()
     {
         return [
