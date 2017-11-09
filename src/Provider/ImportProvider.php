@@ -12,7 +12,7 @@ use Silex\ServiceProviderInterface;
  *
  * @author Néstor de Dios Fernández <nestor@twokings.nl>
  */
-class NotarisProvider implements ServiceProviderInterface
+class ImportProvider implements ServiceProviderInterface
 {
     /**
      * {@inheritdoc}
