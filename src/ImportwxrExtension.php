@@ -29,7 +29,7 @@ class ImportwxrExtension extends SimpleExtension
     protected function registerBackendControllers()
     {
         return [
-            '/extend/importWXR' => new ImportController($this->getContainer(), $this->getConfig()),
+            '/extensions/importWXR' => new ImportController($this->getContainer(), $this->getConfig()),
         ];
     }
 
