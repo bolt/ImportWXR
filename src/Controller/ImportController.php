@@ -11,7 +11,6 @@ use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-
 class ImportController implements ControllerProviderInterface
 {
     /** @var Application $app */
@@ -80,10 +79,9 @@ class ImportController implements ControllerProviderInterface
 
     public function importWXR()
     {
-        // Bolt 3: config://extensions/importwxr/{x.wxr} <--
-        $filesystem = $this->app['filesystem'];
-        $path = "vendor/bolt/importwxr/" . $this->config['file'];
-        $file = $filesystem->getFilesystem('extensions')->getFile($path);
+        $filesystem = $this->app['filesystem']->getFilesystem('extensions');
+        $file = $filesystem->getFile($this->config['file']);
+        $fileAbsolutePath = $filesystem->getAdapter()->getPathPrefix() . $file->getPath();
 
         // No logging. saves memory..
         $this->app['db.config']->setSQLLogger(null);
@@ -101,23 +99,23 @@ class ImportController implements ControllerProviderInterface
                 break;
 
             case "confirm":
-                $output = $this->actionImport($file);
+                $output = $this->actionImport($fileAbsolutePath);
                 break;
 
             case "authors":
-                $output = $this->actionAuthors($file);
+                $output = $this->actionAuthors($fileAbsolutePath);
                 break;
 
             case "dryrun":
-                $output = $this->actionDryRun($file);
+                $output = $this->actionDryRun($fileAbsolutePath);
 
         }
 
         $output = '<div class="row"><div class="col-md-8">' . $output . "</div></div>";
 
-        return $this->app['render']->render('old_extensions/old_extensions.twig', array(
+        return $this->app['render']->render('@importwxr/import.twig', array(
             'title' => "Import WXR (PivotX / Wordpress XML)",
-            'content' => $output
+            'output' => $output
         ));
 
     }
@@ -127,11 +125,10 @@ class ImportController implements ControllerProviderInterface
         $output = '';
 
         try {
-            if ($filesystem->getFilesystem('extensions')->has($file->getPath())) {
+            if ($filesystem->has($file->getPath())) {
 
-                $filesystem->getFilesystem('extensions')->read($file->getPath());
-                // ...
-                // start parsing and do something
+                $filesystem->read($file->getPath());
+
                 $output .= sprintf("<p>File <code>%s</code> selected for import.</p>", $this->config['file']);
 
                 $output .= "<p><a class='btn btn-primary' href='?action=dryrun'><strong>Test a few records</strong></a>";
@@ -140,39 +137,29 @@ class ImportController implements ControllerProviderInterface
                 $output .= "<p>This mapping will be used:</p>";
                 $output .= $this->dump($this->config['mapping']);
 
-                return $this->app['render']->render('@importwxr/import.twig', [
-                    'title' => "Import WXR (PivotX / Wordpress XML)",
-                    'output' => $output
-                ], []);
-
+                return $output;
 
             } else {
                 // show does not exist message
                 $output = "<p>File $file doesn't exist. Correct this in <code>app/config/extensions/importwxr.bolt.yml</code>, and refresh this page.</p>";
 
-                return $this->app['render']->render('@importwxr/import.twig', [
-                    'title' => "Import WXR (PivotX / Wordpress XML)",
-                    'output' => $output
-                ], []);
+                return $output;
             }
         } catch(IOException  $e) {
             // show is not readable message
             $output = "<p>File " . $file->getPath() . " Is not readable. Set readable permission to this file and refresh this page.</p>";
 
-            return $this->app['render']->render('@importwxr/import.twig', [
-                'title' => "Import WXR (PivotX / Wordpress XML)",
-                'output' => $output
-            ], []);
+            return $output;
         }
 
     }
 
-    private function actionImport($file)
+    private function actionImport($fileAbsolutePath)
     {
         $output = '';
 
         $parser = new WXR_Parser();
-        $res = $parser->parse($file);
+        $res = $parser->parse($fileAbsolutePath);
 
         foreach ($res['posts'] as $post) {
             $output .= $this->importPost($post, false);
@@ -202,12 +189,12 @@ class ImportController implements ControllerProviderInterface
         return $output;
     }
 
-    private function actionAuthors($file)
+    private function actionAuthors($fileAbsolutePath)
     {
         $output = '';
 
         $parser = new WXR_Parser();
-        $res = $parser->parse($file);
+        $res = $parser->parse($fileAbsolutePath);
 
         foreach ($res['authors'] as $author) {
             $output .= $this->importAuthor($author);
@@ -218,13 +205,13 @@ class ImportController implements ControllerProviderInterface
         return $output;
     }
 
-    private function actionDryRun($file)
+    private function actionDryRun($fileAbsolutePath)
     {
         $output = '';
         $counter = 1;
 
         $parser = new WXR_Parser();
-        $res = $parser->parse($file->getPath());
+        $res = $parser->parse($fileAbsolutePath);
 
         $this->base_url = $res['base_url'];
 
