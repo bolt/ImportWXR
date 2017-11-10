@@ -65,7 +65,8 @@ class ImportwxrExtension extends SimpleExtension
     {
         return [
             'allowed_tags' => ['div', 'p', 'br', 's', 'u', 'strong', 'em', 'i', 'b',  'blockquote', 'a', 'img'],
-            'allowed_attributes' => ['id', 'class', 'name', 'value', 'href', 'src', 'alt', 'title']
+            'allowed_attributes' => ['id', 'class', 'name', 'value', 'href', 'src', 'alt', 'title'],
+            'max_images' => 10
         ];
     }
 
