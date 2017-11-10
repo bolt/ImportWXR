@@ -73,21 +73,28 @@ class WXR_Parser_SimpleXML
         $xml = simplexml_load_file('php://filter/read=xmlutf8/resource=' . $file);
         // halt if loading produces an error
         if (!$xml) {
-            return new WP_Error('SimpleXML_parse_error', 'There was an error when reading this WXR file',
-                libxml_get_errors());
+            return new WP_Error(
+                'SimpleXML_parse_error',
+                'There was an error when reading this WXR file',
+                libxml_get_errors()
+            );
         }
 
         $wxr_version = $xml->xpath('/rss/channel/wp:wxr_version');
         if (!$wxr_version) {
-            return new WP_Error('WXR_parse_error',
-                'This does not appear to be a WXR file, missing/invalid WXR version number');
+            return new WP_Error(
+                'WXR_parse_error',
+                'This does not appear to be a WXR file, missing/invalid WXR version number'
+            );
         }
 
         $wxr_version = (string)trim($wxr_version[0]);
         // confirm that we are dealing with the correct file format
         if (!preg_match('/^\d+\.\d+$/', $wxr_version)) {
-            return new WP_Error('WXR_parse_error',
-                'This does not appear to be a WXR file, missing/invalid WXR version number');
+            return new WP_Error(
+                'WXR_parse_error',
+                'This does not appear to be a WXR file, missing/invalid WXR version number'
+            );
         }
 
         $base_url = $xml->xpath('/rss/channel/wp:base_site_url');
@@ -317,14 +324,19 @@ class WXR_Parser_XML
             $current_column = xml_get_current_column_number($xml);
             $error_code = xml_get_error_code($xml);
             $error_string = xml_error_string($error_code);
-            return new WP_Error('XML_parse_error', 'There was an error when reading this WXR file',
-                array($current_line, $current_column, $error_string));
+            return new WP_Error(
+                'XML_parse_error',
+                'There was an error when reading this WXR file',
+                array($current_line, $current_column, $error_string)
+            );
         }
         xml_parser_free($xml);
 
         if (!preg_match('/^\d+\.\d+$/', $this->wxr_version)) {
-            return new WP_Error('WXR_parse_error',
-                'This does not appear to be a WXR file, missing/invalid WXR version number');
+            return new WP_Error(
+                'WXR_parse_error',
+                'This does not appear to be a WXR file, missing/invalid WXR version number'
+            );
         }
 
         return array(
@@ -494,8 +506,11 @@ class WXR_Parser_Regex
             while (!$this->feof($fp)) {
                 $importline = rtrim($this->fgets($fp));
 
-                if (!$wxr_version && preg_match('|<wp:wxr_version>(\d+\.\d+)</wp:wxr_version>|', $importline,
-                        $version)
+                if (!$wxr_version && preg_match(
+                    '|<wp:wxr_version>(\d+\.\d+)</wp:wxr_version>|',
+                    $importline,
+                    $version
+                )
                 ) {
                     $wxr_version = $version[1];
                 }
@@ -545,8 +560,10 @@ class WXR_Parser_Regex
         }
 
         if (!$wxr_version) {
-            return new WP_Error('WXR_parse_error',
-                'This does not appear to be a WXR file, missing/invalid WXR version number');
+            return new WP_Error(
+                'WXR_parse_error',
+                'This does not appear to be a WXR file, missing/invalid WXR version number'
+            );
         }
 
         return array(
@@ -646,9 +663,24 @@ class WXR_Parser_Regex
         $post_content = str_replace('<br>', '<br />', $post_content);
         $post_content = str_replace('<hr>', '<hr />', $post_content);
 
-        $postdata = compact('post_id', 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_excerpt',
-            'post_title', 'status', 'post_name', 'comment_status', 'ping_status', 'guid', 'post_parent',
-            'menu_order', 'post_type', 'post_password', 'is_sticky'
+        $postdata = compact(
+            'post_id',
+            'post_author',
+            'post_date',
+            'post_date_gmt',
+            'post_content',
+            'post_excerpt',
+            'post_title',
+            'status',
+            'post_name',
+            'comment_status',
+            'ping_status',
+            'guid',
+            'post_parent',
+            'menu_order',
+            'post_type',
+            'post_password',
+            'is_sticky'
         );
 
         $attachment_url = $this->get_tag($post, 'wp:attachment_url');
@@ -656,8 +688,12 @@ class WXR_Parser_Regex
             $postdata['attachment_url'] = $attachment_url;
         }
 
-        preg_match_all('|<category domain="([^"]+?)" nicename="([^"]+?)">(.+?)</category>|is', $post, $terms,
-            PREG_SET_ORDER);
+        preg_match_all(
+            '|<category domain="([^"]+?)" nicename="([^"]+?)">(.+?)</category>|is',
+            $post,
+            $terms,
+            PREG_SET_ORDER
+        );
         foreach ($terms as $t) {
             $post_terms[] = array(
                 'slug' => $t[2],

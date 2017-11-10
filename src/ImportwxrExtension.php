@@ -69,5 +69,4 @@ class ImportwxrExtension extends SimpleExtension
             'max_images' => 10
         ];
     }
-
 }
