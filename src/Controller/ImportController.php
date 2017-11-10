@@ -3,12 +3,14 @@
 namespace Bolt\Extension\Bolt\Importwxr\Controller;
 
 use Bolt\Extension\Bolt\Importwxr\WXR_Parser;
-use Silex\ControllerProviderInterface;
-use Silex\Application;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Bolt\Filesystem\Exception\IOException;
 use Bolt\Storage\Entity;
 use Maid\Maid;
+use Silex\Application;
+use Silex\ControllerProviderInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
 
 class ImportController implements ControllerProviderInterface
 {
@@ -78,7 +80,10 @@ class ImportController implements ControllerProviderInterface
 
     public function importWXR()
     {
-        $file = realpath($this->app['resources']->getPath('root') . "/" . $this->config['file']);
+        // Bolt 3: config://extensions/importwxr/{x.wxr} <--
+        $filesystem = $this->app['filesystem'];
+        $path = "vendor/bolt/importwxr/" . $this->config['file'];
+        $file = $filesystem->getFilesystem('extensions')->getFile($path);
 
         // No logging. saves memory..
         $this->app['db.config']->setSQLLogger(null);
@@ -92,7 +97,7 @@ class ImportController implements ControllerProviderInterface
         switch ($action) {
 
             case "start":
-                $output = $this->actionStart($file);
+                $output = $this->actionStart($filesystem, $file);
                 break;
 
             case "confirm":
@@ -117,25 +122,49 @@ class ImportController implements ControllerProviderInterface
 
     }
 
-    private function actionStart($file)
+    private function actionStart($filesystem, $file)
     {
         $output = '';
 
-        if (empty($file) || !is_readable($file)) {
-            $filename = $this->app['resources']->getPath('root') . "/" . $this->config['file'];
-            $output .= "<p>File $filename doesn't exist. Correct this in <code>app/config/extensions/importwxr.bolt.yml</code>, and refresh this page.</p>";
-        } else {
+        try {
+            if ($filesystem->getFilesystem('extensions')->has($file->getPath())) {
 
-            $output .= sprintf("<p>File <code>%s</code> selected for import.</p>", $this->config['file']);
+                $filesystem->getFilesystem('extensions')->read($file->getPath());
+                // ...
+                // start parsing and do something
+                $output .= sprintf("<p>File <code>%s</code> selected for import.</p>", $this->config['file']);
 
-            $output .= "<p><a class='btn btn-primary' href='?action=dryrun'><strong>Test a few records</strong></a>";
-            $output .= "&nbsp; <a class='btn btn-primary' href='?action=authors'><strong>Import Authors</strong></a></p>";
+                $output .= "<p><a class='btn btn-primary' href='?action=dryrun'><strong>Test a few records</strong></a>";
+                $output .= "&nbsp; <a class='btn btn-primary' href='?action=authors'><strong>Import Authors</strong></a></p>";
 
-            $output .= "<p>This mapping will be used:</p>";
-            $output .= $this->dump($this->config['mapping']);
+                $output .= "<p>This mapping will be used:</p>";
+                $output .= $this->dump($this->config['mapping']);
+
+                return $this->app['render']->render('@importwxr/import.twig', [
+                    'title' => "Import WXR (PivotX / Wordpress XML)",
+                    'output' => $output
+                ], []);
+
+
+            } else {
+                // show does not exist message
+                $output = "<p>File $file doesn't exist. Correct this in <code>app/config/extensions/importwxr.bolt.yml</code>, and refresh this page.</p>";
+
+                return $this->app['render']->render('@importwxr/import.twig', [
+                    'title' => "Import WXR (PivotX / Wordpress XML)",
+                    'output' => $output
+                ], []);
+            }
+        } catch(IOException  $e) {
+            // show is not readable message
+            $output = "<p>File " . $file->getPath() . " Is not readable. Set readable permission to this file and refresh this page.</p>";
+
+            return $this->app['render']->render('@importwxr/import.twig', [
+                'title' => "Import WXR (PivotX / Wordpress XML)",
+                'output' => $output
+            ], []);
         }
 
-        return $output;
     }
 
     private function actionImport($file)
@@ -195,14 +224,17 @@ class ImportController implements ControllerProviderInterface
         $counter = 1;
 
         $parser = new WXR_Parser();
-        $res = $parser->parse($file);
+        $res = $parser->parse($file->getPath());
 
         $this->base_url = $res['base_url'];
 
         foreach ($res['posts'] as $post) {
-            $output .= $this->importPost($post, true);
-            if ($counter++ >= 4) {
-                break;
+            $result = $this->importPost($post, true);
+            if ($result != false) {
+                $output .= $result;
+                if ($counter++ >= 4) {
+                    break;
+                }
             }
         }
 
@@ -253,7 +285,11 @@ class ImportController implements ControllerProviderInterface
     {
         // If the mapping is not defined, ignore it.
         if (empty($this->config['mapping'][$post['post_type']])) {
-            return "<p>No mapping defined for posttype '" . $post['post_type'] . "'.</p>";
+            if ($dryrun) {
+                return false;
+            } else {
+                return "<p>No mapping defined for posttype '" . $post['post_type'] . "'.</p>";
+            }
         }
 
         // Find out which mapping we should use.
@@ -261,7 +297,11 @@ class ImportController implements ControllerProviderInterface
 
         // If the mapped contenttype doesn't exist in Bolt.
         if (!$this->app['storage']->getContentType($mapping['targetcontenttype'])) {
-            return "<p>Bolt contenttype '" . $mapping['targetcontenttype'] . "' for posttype '" . $post['post_type'] . "' does not exist.</p>";
+            if ($dryrun) {
+                return false;
+            } else {
+                return "<p>Bolt contenttype '" . $mapping['targetcontenttype'] . "' for posttype '" . $post['post_type'] . "' does not exist.</p>";
+            }
         }
 
         // Create the new Bolt Record.
@@ -273,22 +313,6 @@ class ImportController implements ControllerProviderInterface
                 $post[$keyvalue['key']] = $keyvalue['value'];
             }
         }
-
-        // VOOR EUROPEANA FASHION LOCATIONS
-        if (!empty($post['_location_id'])) {
-            $post['_location_id'] = $post['_location_id'] + 100;
-            $record->setRelation('locations', $post['_location_id']);
-        }
-
-        // Voor EUROPEANA FASHION EVENTS
-        if (!empty($post['_event_start_date'])) {
-            $post['_event_start_date'] = $post['_event_start_date'] . " " . $post['_event_start_time'];
-        }
-        if (!empty($post['_event_end_date'])) {
-            $post['_event_end_date'] = $post['_event_end_date'] . " " . $post['_event_end_time'];
-        }
-        // Voor EUROPEANA ENDUSER blogs
-        $post['post_id'] = $post['post_id'] + 20000;
 
         // Convert some [shorttags] to HTML in the content..
         $post = $this->convertShorttags($post);
@@ -367,14 +391,9 @@ class ImportController implements ControllerProviderInterface
             foreach ($post['terms'] as $term) {
                 if ($term['domain'] == 'category') {
                     // dump($post['post_id'] . " - category = " . $term['slug'] );
-                    // $record->setTaxonomy($mapping['category'], $term['slug'], $term['name']);
-                    // if (!in_array($term['slug'], $this->foundcategories)) {
-                    //     $this->foundcategories[$term['slug']] = $term['name'];
-                    // }
-                    if (isset($this->config['europeana_mapping'][ $term['slug'] ])) {
-                        $slug = $this->config['europeana_mapping'][ $term['slug'] ];
-                        // dump("Nieuw: " . $term['slug'] . " = " . $slug);
-                        $record->setTaxonomy($mapping['tags'], $slug, $slug);
+                    $record->setTaxonomy($mapping['category'], $term['slug'], $term['name']);
+                    if (!in_array($term['slug'], $this->foundcategories)) {
+                        $this->foundcategories[$term['slug']] = $term['name'];
                     }
                 }
                 if ($term['domain'] == 'event-categories') {
@@ -382,175 +401,11 @@ class ImportController implements ControllerProviderInterface
                 }
                 if ($term['domain'] == 'tag' || $term['domain'] == 'post_tag') {
                     // dump("tag = " . $term['slug'] );
-                    // $record->setTaxonomy($mapping['tags'], $term['slug'], $term['name']);
-                    // For europeana.. It should be as the line above for other usecases
-                    $record->setTaxonomy($mapping['tags'], $term['slug'], $term['slug']);
+                    $record->setTaxonomy($mapping['tags'], $term['slug'], $term['name']);
                 }
 
-                // dump($term['slug']);
-                // $term['slug'] = $this->app['slugify']->slugify(str_replace('europeana-', '', $term['slug']));
-                // dump($term['slug']);
-                // echo "<hr>";
-                // if (isset($this->config['europeana_mapping'][ $term['slug'] ])) {
-                //     $slug = $this->config['europeana_mapping'][ $term['slug'] ];
-                //     dump($term['slug'] . " = " . $slug);
-                //     $record->setTaxonomy($mapping['tags'], $slug, $slug);
-                // }
             }
         }
-
-        // For Europeana BLOGS attachment imports
-        // if ($post['post_type'] == "attachment") {
-        //     dump($post);
-        //     dump($record);
-        //     echo "<hr>";
-        // }
-
-        // For EUROPEANA FASHION
-        // $record->setTaxonomy('blogs', 'europeana-fashion');
-        // $record->setTaxonomy('tags', 'fashion');
-        // $record->setTaxonomy('tags', 'culturelover');
-        // $record->setTaxonomy('tags', 'culturelover-fashion');
-
-
-        // For EUROPEANA ENDUSER
-        $record->setTaxonomy('blogs', 'europeana-enduser', 'europeana-enduser');
-        $record->setTaxonomy('tags', 'culturelover');
-        // $record->setTaxonomy('tags', 'culturelover-enduser');
-
-
-        // Voor Europeana PRO - LOCATIONS
-        // if (!empty($post['_location_address'])) {
-        //     $address = sprintf( "%s, %s, %s, %s", $post['_location_address'], $post['_location_town'], $post['_location_postcode'], $post['_location_country']);
-        //     $address = str_replace(', , ', ', ', $address);
-        // } else {
-        //     $address = '';
-        // }
-        // $loc = [
-        //     "latitude" => $post['_location_latitude'],
-        //     "longitude" => $post['_location_longitude'],
-        //     "formatted_address" => $address,
-        //     "address" => $address
-        // ];
-        // $record->setValue('geolocation', json_encode($loc));
-        // if ($record->get('title') == '') {
-        //     $record->setValue('title', "Location " . $post['post_id']);
-        //     $record->setValue('slug', "Location " . $post['post_id']);
-        // }
-
-        // Voor Europeana PRO - EVENTS
-        if ($record->get('body') && strpos('<p', $record->get('body')) === false) {
-            $record->setValue('body', $this->app['markdown']->parse($record->get('body')));
-        }
-        $record->setValue('body', str_replace('&amp;size=FULL_DOC', '', $record->get('body')));
-        $record->setValue('body', str_replace('&amp;type=IMAGE', '', $record->get('body')));
-
-
-//        if ($post['status'] == "publish") {
-//            $link = file_get_contents($post['link']);
-//            $res = preg_match_all('/http:\/\/blog.europeanafashion.eu\/files\/[0-9a-z\/_\.-]+-[0-9x]+\.(jpg|png)/i', $link, $matches);
-//            if ($res) {
-//                $image = preg_replace('/-[0-9x]+\./i', '.', $matches[0][0]);
-//
-//                // dump($matches);
-//
-//                $this->app['slugify']->setRegExp(['regexp' => '/([^A-Za-z0-9_\.]|-)+/']);
-//                $basename = $this->app['slugify']->slugify(basename($image));
-//                $newname = sprintf('%s/%s/%s', $mapping['image_prefix'], substr($post['post_date'],0,7), $basename);
-//                $this->foundimages[$image] = $newname;
-//
-//                $record->setValue('teaser_image', json_encode(['file' => $newname]));
-//            } else {
-//                $res = preg_match_all('/http:\/\/blog.europeanafashion.eu\/files\/[0-9a-z\/_\.-]+\.png/i', $link, $matches);
-//                if ($res) {
-//                    $image = preg_replace('/-[0-9x]+\./i', '.', $matches[0][0]);
-//
-//                    $this->app['slugify']->setRegExp(['regexp' => '/([^A-Za-z0-9_\.]|-)+/']);
-//                    $basename = $this->app['slugify']->slugify(basename($image));
-//                    $newname = sprintf('%s/%s/%s', $mapping['image_prefix'], substr($post['post_date'],0,7), $basename);
-//                    $this->foundimages[$image] = $newname;
-//
-//                    $record->setValue('teaser_image', json_encode(['file' => $newname]));
-//                } else {
-//                    echo "Geen afbeelding: ";
-//                    dump($post['link']);
-//                }
-//            }
-//        }
-
-        // // Voor PRO BETA
-        // if ($post['post_author'] == 'marcorendina') {
-        //     $record->setRelation('network', 1739);
-        // }
-        // if ($post['post_author'] == 'mfranceschini') {
-        //     $record->setRelation('network', 3452);
-        // }
-        // if ($post['post_author'] == 'ericamaricrea') {
-        //     $record->setRelation('network', 3453);
-        // }
-        // if ($post['post_author'] == 'dylancolussi') {
-        //     $record->setRelation('network', 3454);
-        // }
-        // if ($post['post_author'] == 'erwinverbruggen') {
-        //     $record->setRelation('network', 1833);
-        // }
-
-        // Voor Enduser
-        if ($post['post_author'] == 'Europeana Sounds') {
-            $record->setRelation('network', 803);
-        }
-
-        if ($post['post_author'] == '24') {
-            $record->setRelation('persons', 24);
-        }
-        if ($post['post_author'] == 'Adrian') {
-            $record->setRelation('persons', 156);
-        }
-        if ($post['post_author'] == 'Aleksandra') {
-            $record->setRelation('persons', 141);
-        }
-        if ($post['post_author'] == 'Beth') {
-            $record->setRelation('persons', 96);
-        }
-        if ($post['post_author'] == 'David') {
-            $record->setRelation('persons', 7);
-        }
-        if ($post['post_author'] == 'Douglas McCarthy') {
-            $record->setRelation('persons', 105);
-        }
-        if ($post['post_author'] == 'Eleanor') {
-            $record->setRelation('persons', 31);
-        }
-        if ($post['post_author'] == 'Jule') {
-            $record->setRelation('persons', 148);
-        }
-        if ($post['post_author'] == 'Maggy') {
-            $record->setRelation('persons', 126);
-        }
-        if ($post['post_author'] == 'Michelle') {
-            $record->setRelation('persons', 37);
-        }
-        if ($post['post_author'] == 'Milena') {
-            $record->setRelation('persons', 6);
-        }
-
-        // Voor PRO
-        // if ($post['post_author'] == 'marcorendina') {
-        //     $record->setRelation('network', 323);
-        // }
-        // if ($post['post_author'] == 'mfranceschini') {
-        //     $record->setRelation('network', 1930);
-        // }
-        // if ($post['post_author'] == 'ericamaricrea') {
-        //     $record->setRelation('network', 1931);
-        // }
-        // if ($post['post_author'] == 'dylancolussi') {
-        //     $record->setRelation('network', 1932);
-        // }
-        // if ($post['post_author'] == 'erwinverbruggen') {
-        //     $record->setRelation('network', 416);
-        // }
-
 
         if ($dryrun) {
             $output = "<p>Original WXR Post <b>\"" . $post['post_title'] . "\"</b> -&gt; Converted Bolt Record :</p>";
@@ -647,6 +502,10 @@ class ImportController implements ControllerProviderInterface
 
     private function importImages()
     {
+        if (!$this->config['fetch_images']) {
+            return false;
+        }
+
         /** @var \Bolt\FileSystem\Filesystem $files */
         $files = $this->app['filesystem']->getFilesystem('files');
 
