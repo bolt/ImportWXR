@@ -74,3 +74,6 @@ mapping:
 
 allowed_tags: ['div', 'p', 'br', 's', 'u', 'strong', 'em', 'i', 'b',  'blockquote', 'a', 'img']
 allowed_attributes: ['id', 'class', 'name', 'value', 'href', 'src', 'alt', 'title']
+
+fetch_images: false;
+max_images: 100;
