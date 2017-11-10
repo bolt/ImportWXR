@@ -6,7 +6,6 @@ use Bolt\Extension\Bolt\Importwxr\Provider\ImportService;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
-
 /**
  * ImportWXR Service Provider
  *
@@ -37,5 +36,4 @@ class ImportProvider implements ServiceProviderInterface
     public function boot(Application $app)
     {
     }
-
 }
