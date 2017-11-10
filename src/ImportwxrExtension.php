@@ -33,6 +33,20 @@ class ImportwxrExtension extends SimpleExtension
         ];
     }
 
+     /**
+     * {@inheritdoc}
+     */
+    protected function registerTwigPaths()
+    {
+        return [
+            'templates' => [
+                'position'  => 'prepend',
+                'namespace' => 'importwxr'
+            ]
+        ];
+    }
+
+
     /**
      * {@inheritdoc}
      */
