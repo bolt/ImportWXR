@@ -93,7 +93,6 @@ class ImportController implements ControllerProviderInterface
         }
 
         switch ($action) {
-
             case "start":
                 $output = $this->actionStart($filesystem, $file);
                 break;
@@ -108,7 +107,6 @@ class ImportController implements ControllerProviderInterface
 
             case "dryrun":
                 $output = $this->actionDryRun($fileAbsolutePath);
-
         }
 
         $output = '<div class="row"><div class="col-md-8">' . $output . "</div></div>";
@@ -117,7 +115,6 @@ class ImportController implements ControllerProviderInterface
             'title' => "Import WXR (PivotX / Wordpress XML)",
             'output' => $output
         ));
-
     }
 
     private function actionStart($filesystem, $file)
@@ -126,7 +123,6 @@ class ImportController implements ControllerProviderInterface
 
         try {
             if ($filesystem->has($file->getPath())) {
-
                 $filesystem->read($file->getPath());
 
                 $output .= sprintf("<p>File <code>%s</code> selected for import.</p>", $this->config['file']);
@@ -138,20 +134,18 @@ class ImportController implements ControllerProviderInterface
                 $output .= $this->dump($this->config['mapping']);
 
                 return $output;
-
             } else {
                 // show does not exist message
                 $output = "<p>File $file doesn't exist. Correct this in <code>app/config/extensions/importwxr.bolt.yml</code>, and refresh this page.</p>";
 
                 return $output;
             }
-        } catch(IOException  $e) {
+        } catch (IOException  $e) {
             // show is not readable message
             $output = "<p>File " . $file->getPath() . " Is not readable. Set readable permission to this file and refresh this page.</p>";
 
             return $output;
         }
-
     }
 
     private function actionImport($fileAbsolutePath)
@@ -313,7 +307,6 @@ class ImportController implements ControllerProviderInterface
 
         // Iterate through the mappings, see if we can find it.
         foreach ($mapping['fields'] as $from => $to) {
-
             if (isset($post[$from])) {
                 // It's present in the fields.
 
@@ -349,7 +342,7 @@ class ImportController implements ControllerProviderInterface
                             $filename = sprintf(
                                 "%s/%s/%s",
                                 $mapping['image_prefix'],
-                                substr($post['post_date'],0,7),
+                                substr($post['post_date'], 0, 7),
                                 basename($value)
                             );
                             $value = json_encode(['file' => $filename]);
@@ -359,7 +352,6 @@ class ImportController implements ControllerProviderInterface
 
                 $record->setValue($to, $value);
             }
-
         }
 
         $record->setValue('ownerid', $this->setOwnerID($post, $mapping));
@@ -390,7 +382,6 @@ class ImportController implements ControllerProviderInterface
                     // dump("tag = " . $term['slug'] );
                     $record->setTaxonomy($mapping['tags'], $term['slug'], $term['name']);
                 }
-
             }
         }
 
@@ -439,7 +430,7 @@ class ImportController implements ControllerProviderInterface
         $output = "<br><p>These links were found, you can use them to make redirects from the old site to the new one:</p>";
         $output .= "<table border='1' width='1500' cellspacing='0' cellpadding='3'><tr><th>ID</th><th>Status</th><th>Original Link</th><th>New Link</th></tr>";
 
-        foreach($this->linkmapping as $item) {
+        foreach ($this->linkmapping as $item) {
             $parse = parse_url($item['old']);
             $old_pretty = $parse['path'] . (!empty($parse['query']) ? '?' . $parse['query'] : '');
             $output .= sprintf("<tr><td>%s</td>", $item['id']);
@@ -470,10 +461,10 @@ class ImportController implements ControllerProviderInterface
         $res = preg_match_all($pattern, $html, $matches);
 
         if ($res) {
-            foreach($matches[0] as $oldname) {
+            foreach ($matches[0] as $oldname) {
                 $this->app['slugify']->setRegExp(['regexp' => '/([^A-Za-z0-9_\.]|-)+/']);
                 $basename = $this->app['slugify']->slugify(basename($oldname));
-                $newname = sprintf('%s/%s/%s', $prefix, substr($post['post_date'],0,7), $basename);
+                $newname = sprintf('%s/%s/%s', $prefix, substr($post['post_date'], 0, 7), $basename);
                 $this->foundimages[$oldname] = $newname;
                 $post['post_excerpt'] = str_replace($oldname, $path . $newname, $post['post_excerpt']);
                 $post['post_content'] = str_replace($oldname, $path . $newname, $post['post_content']);
@@ -604,7 +595,7 @@ class ImportController implements ControllerProviderInterface
         $arguments = [];
 
         if ($res) {
-            foreach($matches[1] as $key => $value) {
+            foreach ($matches[1] as $key => $value) {
                 $arguments[$value] = $matches[2][$key];
             }
         }
@@ -626,7 +617,4 @@ class ImportController implements ControllerProviderInterface
         dump($var);
         return ob_get_clean();
     }
-
-
 }
-
