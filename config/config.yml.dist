@@ -1,8 +1,8 @@
 # The name of the XML file to import. Place this file in the folder:
-# extensions/vendor/bolt/importwxr/files/
+# app/config/extensions/importwxr
 
 # file: files/pages.xml
-file: files/entries_and_comments.xml
+file: extensions/importwxr/pages.xml
 
 # Whether authors found in the XML file should be automatically imported. Not yet supported.
 import_authors: false

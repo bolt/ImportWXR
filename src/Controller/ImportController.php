@@ -79,7 +79,7 @@ class ImportController implements ControllerProviderInterface
 
     public function importWXR()
     {
-        $filesystem = $this->app['filesystem']->getFilesystem('extensions');
+        $filesystem = $this->app['filesystem']->getFilesystem('config');
         $file = $filesystem->getFile($this->config['file']);
         $fileAbsolutePath = $filesystem->getAdapter()->getPathPrefix() . $file->getPath();
 
