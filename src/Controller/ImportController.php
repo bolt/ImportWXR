@@ -136,7 +136,7 @@ class ImportController implements ControllerProviderInterface
                 return $output;
             } else {
                 // show does not exist message
-                $output = "<p>File $file doesn't exist. Correct this in <code>app/config/extensions/importwxr.bolt.yml</code>, and refresh this page.</p>";
+                $output = "<p>File <code>" . $file->getPath() . "</code> doesn't exist. Correct this in <code>app/config/extensions/importwxr.bolt.yml</code>, and refresh this page.</p>";
 
                 return $output;
             }
@@ -151,12 +151,17 @@ class ImportController implements ControllerProviderInterface
     private function actionImport($fileAbsolutePath)
     {
         $output = '';
+        $lastresult = null;
 
         $parser = new WXR_Parser();
         $res = $parser->parse($fileAbsolutePath);
 
         foreach ($res['posts'] as $post) {
-            $output .= $this->importPost($post, false);
+            $result = $this->importPost($post, false);
+            if ($result != $lastresult) {
+                $output .= $result;
+            }
+            $lastresult = $result;
         }
 
         $this->importImages();
@@ -209,18 +214,18 @@ class ImportController implements ControllerProviderInterface
 
         $this->base_url = $res['base_url'];
 
+        $output .= sprintf("<p>Looking good? Then click below to import the Records: </p>");
+        $output .= "<p><a class='btn btn-primary' href='?action=confirm'><strong>Confirm!</strong></a></p>";
+
         foreach ($res['posts'] as $post) {
             $result = $this->importPost($post, true);
             if ($result != false) {
                 $output .= $result;
-                if ($counter++ >= 4) {
+                if ($counter++ >= 3) {
                     break;
                 }
             }
         }
-
-        $output .= sprintf("<p>Looking good? Then click below to import the Records: </p>");
-        $output .= "<p><a class='btn btn-primary' href='?action=confirm'><strong>Confirm!</strong></a></p>";
 
         return $output;
     }
